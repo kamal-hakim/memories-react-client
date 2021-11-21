@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Button, Paper, Grid, Typography, Container } from '@material-ui/core';
 import { GoogleLogin } from 'react-google-login';
+import * as actionTypes from '../../actions/actionTypes';
+import { signIn, signUp } from '../../actions/auth';
 import Icon from './Icon';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 
@@ -10,25 +12,40 @@ import Input from './Input';
 import useStyles from './styles';
 import { useDispatch } from 'react-redux';
 
+const initialState = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+}
+
 const Auth = () => {
     const classes = useStyles();
     const [ showPassword, setShowPassword ] = useState(false);
-    const [ isSignup, setIsSingup ] = useState(false);   
-    const dispatch = useDispatch(); 
+    const [ isSignup, setIsSingup ] = useState(false);
+    const [ formData, setFormData ] = useState(initialState);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const handleShowPassword = () => setShowPassword(!showPassword);
 
-    const handleSubmit = () => {
-
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (isSignup) {
+            dispatch(signUp(formData, navigate));
+        } else {
+            dispatch(signIn(formData, navigate));
+        }
     }
 
-    const handleChange = () => {
-
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name] : e.target.value })
     }
 
     const switchMode = () => {
         setIsSingup(!isSignup);
+        setShowPassword(false);
         handleShowPassword(false);
     }
 
@@ -37,7 +54,7 @@ const Auth = () => {
         const token = res?.tokenId;
 
         try {
-            dispatch({ type: 'AUTH', data: { result, token }});
+            dispatch({ type: actionTypes.AUTH, data: { result, token }});
             navigate('/');
         } catch (error) {
             console.log(error);
@@ -48,7 +65,7 @@ const Auth = () => {
         console.log('Google Sign In was unsuccessful. Try again later.')
     }
 
-    return ( 
+    return (
         <Container component="main" maxWidth="xs">
         <Paper className={classes.paper} elevation={3}>
             <Avatar className={classes.avatar}>
@@ -101,5 +118,5 @@ const Auth = () => {
       </Container>
      );
 }
- 
+
 export default Auth;
